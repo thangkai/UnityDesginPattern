@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cấu trúc hoạt động của Design Patterns</title>
+<style>
+  :root{
+    --bg:#0e1117; --panel:#161b22; --panel2:#1c2230; --border:#2a3344;
+    --txt:#d6dce5; --muted:#8b97a8; --accent:#5db1ff; --accent2:#9d7bff;
+    --green:#54d68a; --orange:#f0a35e; --pink:#ff7eb6; --code:#0a0d12;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; font-family:"Segoe UI",system-ui,-apple-system,sans-serif;
+    background:var(--bg); color:var(--txt); line-height:1.6;
+  }
+  .layout{display:flex; min-height:100vh}
+
+  /* Sidebar */
+  aside{
+    width:280px; flex-shrink:0; background:var(--panel);
+    border-right:1px solid var(--border); position:sticky; top:0;
+    height:100vh; overflow-y:auto; padding:20px 0;
+  }
+  aside h2{font-size:14px; text-transform:uppercase; letter-spacing:1px;
+    color:var(--muted); padding:0 22px; margin:18px 0 8px}
+  aside .brand{padding:0 22px 14px; border-bottom:1px solid var(--border);
+    margin-bottom:10px}
+  aside .brand b{font-size:17px; color:#fff}
+  aside .brand span{display:block; font-size:12px; color:var(--muted)}
+  aside a{display:block; padding:7px 22px; color:var(--txt); text-decoration:none;
+    font-size:14px; border-left:3px solid transparent}
+  aside a:hover{background:var(--panel2); border-left-color:var(--accent)}
+  aside a .num{color:var(--muted); font-size:12px; margin-right:6px}
+
+  /* Main */
+  main{flex:1; padding:36px 48px; max-width:1000px; margin:0 auto}
+  header.page{margin-bottom:36px}
+  header.page h1{font-size:30px; margin:0 0 6px; color:#fff}
+  header.page p{color:var(--muted); margin:0; max-width:680px}
+
+  /* Category groups */
+  .cat-title{font-size:13px; text-transform:uppercase; letter-spacing:1.5px;
+    color:var(--accent2); margin:40px 0 4px; font-weight:700}
+
+  /* Cards */
+  .card{background:var(--panel); border:1px solid var(--border);
+    border-radius:12px; padding:24px 28px; margin:18px 0;
+    scroll-margin-top:20px}
+  .card h3{margin:0 0 4px; font-size:21px; color:#fff; display:flex;
+    align-items:baseline; gap:10px}
+  .card h3 .idx{font-size:13px; color:var(--accent); background:rgba(93,177,255,.12);
+    padding:2px 8px; border-radius:6px; font-weight:600}
+  .tagline{color:var(--muted); font-style:italic; margin:0 0 16px}
+
+  .grid{display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-top:14px}
+  @media(max-width:820px){.grid{grid-template-columns:1fr} aside{display:none}}
+  .box{background:var(--panel2); border:1px solid var(--border);
+    border-radius:8px; padding:14px 16px}
+  .box h4{margin:0 0 8px; font-size:13px; text-transform:uppercase;
+    letter-spacing:.5px; color:var(--orange)}
+  .box.prob h4{color:var(--pink)}
+  .box.sol h4{color:var(--green)}
+  .box.flow h4{color:var(--accent)}
+  .box.use h4{color:var(--accent2)}
+  .box ul{margin:0; padding-left:18px}
+  .box li{margin:3px 0}
+
+  /* Flow diagram */
+  .flow-steps{list-style:none; padding:0; margin:0; counter-reset:s}
+  .flow-steps li{counter-increment:s; position:relative; padding:6px 0 6px 34px;
+    margin:0}
+  .flow-steps li::before{content:counter(s); position:absolute; left:0; top:6px;
+    width:22px; height:22px; background:var(--accent); color:#08111c;
+    border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-size:12px; font-weight:700}
+  .flow-steps li:not(:last-child)::after{content:""; position:absolute; left:10px;
+    top:30px; bottom:-2px; width:2px; background:var(--border)}
+
+  code, .mono{font-family:"Consolas","Courier New",monospace; font-size:13px}
+  .inline{background:var(--code); padding:1px 6px; border-radius:4px; color:#ffd9a0}
+  pre{background:var(--code); border:1px solid var(--border); border-radius:8px;
+    padding:14px 16px; overflow-x:auto; font-size:13px; margin:14px 0 0;
+    color:#c9d1d9}
+  pre .kw{color:#ff7eb6} pre .ty{color:#79c0ff} pre .cm{color:#6b7689}
+  pre .st{color:#a5d6a4}
+
+  .uml{font-family:monospace; white-space:pre; background:var(--code);
+    border:1px solid var(--border); border-radius:8px; padding:14px;
+    overflow-x:auto; color:#8fd6ff; font-size:12.5px; line-height:1.4; margin-top:12px}
+
+  footer{color:var(--muted); text-align:center; padding:40px 0 10px;
+    border-top:1px solid var(--border); margin-top:40px; font-size:13px}
+  .top{position:fixed; right:22px; bottom:22px; background:var(--accent);
+    color:#08111c; width:42px; height:42px; border-radius:50%; display:flex;
+    align-items:center; justify-content:center; text-decoration:none;
+    font-size:20px; font-weight:700; box-shadow:0 4px 16px rgba(0,0,0,.4)}
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside>
+    <div class="brand">
+      <b>Design Patterns</b>
+      <span>Cấu trúc &amp; cách hoạt động · Unity</span>
+    </div>
+    <nav id="nav"></nav>
+  </aside>
+
+  <main>
+    <header class="page">
+      <h1>Cấu trúc hoạt động của Design Patterns</h1>
+      <p>Tổng hợp các mẫu thiết kế (theo cuốn <i>Game Programming Patterns</i> &amp; ứng dụng Unity). Mỗi mẫu nêu rõ <b>vấn đề</b>, <b>cách giải</b>, <b>luồng hoạt động</b> và <b>khi nào dùng</b>.</p>
+    </header>
+    <div id="content"></div>
+    <footer>Tạo cho project <code>Unity-Programming-Patterns</code> · 2026</footer>
+  </main>
+</div>
+<a href="#" class="top" title="Lên đầu trang">↑</a>
+
+<script>
+const CATS = [
+  {name:"Command & Behavioral", items:["command","observer","state","template","decorator"]},
+  {name:"Creational", items:["singleton","prototype","factory","object-pool","type-object"]},
+  {name:"Optimization", items:["flyweight","dirty-flag","double-buffer","spatial-partition","bytecode"]},
+  {name:"Decoupling & Structure", items:["event-queue","service-locator","subclass-sandbox","update","facade"]},
+];
+
+const P = {
+"command":{idx:"1",title:"Command",tag:"Đóng gói một yêu cầu (request) thành đối tượng.",
+  problem:["Hard-code input → hành động khiến khó remap phím, khó undo, khó replay.","Caller bị buộc chặt với receiver."],
+  solution:["Bọc mỗi hành động vào object có method <span class='inline'>Execute()</span> (và <span class='inline'>Undo()</span>).","Input handler chỉ trả về Command, không tự thực thi → tách rời ai gọi và ai làm."],
+  flow:["Input đọc phím → tạo/lấy Command object.","Gọi <span class='inline'>command.Execute(actor)</span>.","Lưu command vào stack để Undo/Redo hoặc replay.","Undo gọi <span class='inline'>command.Undo()</span> đảo ngược trạng thái."],
+  use:["Hệ thống remap phím","Undo/Redo","Ghi &amp; phát lại (replay)","AI ra lệnh cho NPC"],
+  uml:"Command (interface)\n ├ Execute()\n └ Undo()\n   ▲\n   ├─ MoveCommand\n   └─ AttackCommand\nInvoker ──holds──▶ Command ──acts on──▶ Receiver",
+  code:`<span class="kw">interface</span> <span class="ty">ICommand</span> {
+  <span class="kw">void</span> Execute(GameObject a);
+  <span class="kw">void</span> Undo(GameObject a);
+}
+<span class="cm">// invoker chỉ giữ và gọi, không biết chi tiết</span>
+cmd = handler.HandleInput();
+cmd?.Execute(player); history.Push(cmd);`},
+
+"observer":{idx:"3",title:"Observer",tag:"Một đối tượng đổi trạng thái → tự động báo cho nhiều đối tượng khác.",
+  problem:["Subject phải biết và gọi trực tiếp từng đối tượng quan tâm → coupling cao.","Thêm listener mới phải sửa subject."],
+  solution:["Subject giữ danh sách observers, gọi <span class='inline'>Notify()</span> khi có sự kiện.","Trong C#/Unity: dùng <span class='inline'>event</span> / <span class='inline'>Action</span> / UnityEvent."],
+  flow:["Observer đăng ký: <span class='inline'>subject.OnX += Handler</span>.","Subject thay đổi trạng thái.","Subject phát sự kiện → tất cả observer được gọi.","Observer hủy đăng ký khi destroy (<span class='inline'>-=</span>)."],
+  use:["Achievement / UI cập nhật theo máu, điểm","Hệ thống sự kiện toàn cục","Tách logic gameplay khỏi hiển thị"],
+  uml:"Subject\n ├ Subscribe(o) / Unsubscribe(o)\n └ Notify() ──▶ Observer.OnNotify()\n                  ▲\n          ┌───────┼───────┐\n        UI    Audio    Achievements",
+  code:`<span class="kw">public event</span> <span class="ty">Action</span>&lt;<span class="ty">int</span>&gt; OnHealthChanged;
+<span class="cm">// phát</span>
+health -= dmg; OnHealthChanged?.Invoke(health);
+<span class="cm">// nghe</span>
+player.OnHealthChanged += hpBar.Refresh;`},
+
+"state":{idx:"6",title:"State (FSM)",tag:"Hành vi đổi theo trạng thái nội tại; mỗi state là một object.",
+  problem:["Nhiều cờ boolean (<span class='inline'>isJumping</span>, <span class='inline'>isAttacking</span>...) → if/else lồng nhau rối.","Trạng thái không hợp lệ dễ xảy ra."],
+  solution:["Mỗi trạng thái = một class với <span class='inline'>Enter/Update/Exit</span>.","Context giữ <span class='inline'>currentState</span>; chuyển state bằng cách thay object."],
+  flow:["Context gọi <span class='inline'>currentState.Update()</span> mỗi frame.","State quyết định có chuyển sang state khác không.","Khi chuyển: <span class='inline'>Exit()</span> state cũ → set state mới → <span class='inline'>Enter()</span>.","Vòng lặp tiếp tục với state mới."],
+  use:["AI enemy (patrol/chase/attack)","Player controller (idle/run/jump)","Menu / game flow","Animation logic"],
+  uml:"Context.currentState ──▶ IState\n                            ▲\n          ┌─────────┬───────┴──┐\n        Idle     Run        Jump\n   (Enter/Update/Exit mỗi state)",
+  code:`<span class="kw">interface</span> <span class="ty">IState</span> { <span class="kw">void</span> Enter(); <span class="ty">IState</span> Update(); <span class="kw">void</span> Exit(); }
+<span class="cm">// context</span>
+<span class="kw">var</span> next = currentState.Update();
+<span class="kw">if</span> (next != currentState) {
+  currentState.Exit(); currentState = next; currentState.Enter();
+}`},
+
+"template":{idx:"23",title:"Template Method",tag:"Lớp cha định khung thuật toán, lớp con điền các bước.",
+  problem:["Nhiều biến thể chung một quy trình nhưng khác vài bước → lặp code khung."],
+  solution:["Base class viết method khung (template) gọi các bước <span class='inline'>abstract/virtual</span>.","Subclass override từng bước, không đổi thứ tự khung."],
+  flow:["Gọi method template ở base.","Template gọi lần lượt các bước (hook).","Bước nào abstract → chạy bản của subclass.","Khung cố định, chi tiết do con quyết định."],
+  use:["Quy trình khởi tạo nhiều loại đối tượng","AI có cùng cấu trúc lượt đánh","Build/Load theo các bước cố định"],
+  uml:"AbstractClass\n └ TemplateMethod()  { Step1(); Step2(); }\n      Step1()  (abstract)\n      Step2()  (abstract)\n         ▲\n     ConcreteClass override Step1/Step2",
+  code:`<span class="kw">abstract class</span> <span class="ty">Character</span> {
+  <span class="kw">public void</span> TakeTurn() { Move(); UseSkill(); EndTurn(); } <span class="cm">// khung</span>
+  <span class="kw">protected abstract void</span> Move();
+  <span class="kw">protected abstract void</span> UseSkill();
+}`},
+
+"decorator":{idx:"20",title:"Decorator",tag:"Bọc đối tượng để thêm hành vi động mà không sửa class gốc.",
+  problem:["Thêm tính năng bằng kế thừa gây bùng nổ số lớp con (mọi tổ hợp)."],
+  solution:["Decorator implement cùng interface với đối tượng, giữ tham chiếu tới nó.","Mỗi decorator thêm hành vi rồi delegate phần còn lại cho object bên trong."],
+  flow:["Tạo object gốc (component cơ bản).","Bọc nó trong một decorator.","Có thể bọc tiếp nhiều lớp (chồng).","Gọi method → từng lớp xử lý rồi chuyển vào trong."],
+  use:["Buff/debuff stack lên weapon","Thêm hiệu ứng lên skill","I/O stream, UI trang trí"],
+  uml:"IComponent\n  ▲          ▲\nConcrete   Decorator ──wraps──▶ IComponent\n            ▲      ▲\n        FireBuff  IceBuff  (chồng nhiều lớp)",
+  code:`<span class="kw">class</span> <span class="ty">FireDamage</span> : <span class="ty">IWeapon</span> {
+  <span class="ty">IWeapon</span> inner;
+  <span class="kw">public int</span> Damage() => inner.Damage() + 5; <span class="cm">// thêm rồi delegate</span>
+}
+<span class="ty">IWeapon</span> w = <span class="kw">new</span> FireDamage(<span class="kw">new</span> Sword());`},
+
+"singleton":{idx:"5",title:"Singleton",tag:"Đảm bảo class chỉ có một thể hiện, truy cập toàn cục.",
+  problem:["Cần đúng một manager (Audio, Game) và truy cập từ mọi nơi."],
+  solution:["Constructor private, một static <span class='inline'>Instance</span> tự tạo/giữ.","Unity: kiểm tra trùng trong <span class='inline'>Awake()</span>, <span class='inline'>DontDestroyOnLoad</span>."],
+  flow:["Code gọi <span class='inline'>Manager.Instance</span>.","Lần đầu → tạo instance, lưu lại.","Lần sau → trả về instance đã có.","Bản trùng (scene reload) tự hủy."],
+  use:["GameManager, AudioManager","Save system","⚠ Lạm dụng → biến thành global state khó test"],
+  uml:"Singleton\n ├ <static> Instance ──▶ (chính nó)\n └ private ctor\nAnyClass ──Manager.Instance.Do()──▶ Singleton",
+  code:`<span class="kw">public static</span> <span class="ty">GameManager</span> Instance { <span class="kw">get</span>; <span class="kw">private set</span>; }
+<span class="kw">void</span> Awake() {
+  <span class="kw">if</span> (Instance != <span class="kw">null</span>) { Destroy(gameObject); <span class="kw">return</span>; }
+  Instance = <span class="kw">this</span>; DontDestroyOnLoad(gameObject);
+}`},
+
+"prototype":{idx:"4",title:"Prototype",tag:"Tạo object mới bằng cách clone một mẫu sẵn có.",
+  problem:["Khởi tạo object phức tạp/tốn kém; muốn tạo bản sao theo runtime."],
+  solution:["Đối tượng có method <span class='inline'>Clone()</span> tự nhân bản chính nó.","Unity: <span class='inline'>Instantiate(prefab)</span> chính là prototype."],
+  flow:["Có một prototype/prefab cấu hình sẵn.","Cần object mới → clone prototype.","Tùy biến nhẹ bản sao.","Lặp lại không cần biết class cụ thể."],
+  use:["Spawn enemy từ prefab","Bullet, particle","Tạo biến thể từ một mẫu gốc"],
+  uml:"IPrototype\n └ Clone() ──▶ bản sao của chính nó\nSpawner ──Clone()──▶ new Enemy (giống mẫu)",
+  code:`<span class="cm">// Unity = prototype pattern dạng built-in</span>
+Enemy e = Instantiate(enemyPrefab, pos, rot);
+<span class="cm">// hoặc thủ công</span>
+<span class="kw">public</span> <span class="ty">Enemy</span> Clone() => (<span class="ty">Enemy</span>)<span class="kw">this</span>.MemberwiseClone();`},
+
+"factory":{idx:"21",title:"Factory",tag:"Tách logic tạo đối tượng ra khỏi nơi sử dụng.",
+  problem:["<span class='inline'>new</span> rải rác khắp nơi → đổi cách tạo phải sửa nhiều chỗ; client phụ thuộc class cụ thể."],
+  solution:["Một factory method/class nhận tham số → trả về object phù hợp (theo interface).","Client chỉ biết interface, không biết class concrete."],
+  flow:["Client yêu cầu factory tạo đối tượng (truyền type/enum).","Factory chọn class concrete tương ứng.","Factory <span class='inline'>new</span> và trả về dưới dạng interface.","Client dùng qua interface."],
+  use:["Tạo enemy/item theo loại","Spawn theo data/config","Kết hợp với Object Pool"],
+  uml:"Factory.Create(type) ──▶ IProduct\n                            ▲\n               ┌────────────┼────────┐\n            Goblin       Orc      Dragon",
+  code:`<span class="kw">public static</span> <span class="ty">IEnemy</span> Create(<span class="ty">EnemyType</span> t) => t <span class="kw">switch</span> {
+  EnemyType.Goblin => <span class="kw">new</span> Goblin(),
+  EnemyType.Orc    => <span class="kw">new</span> Orc(),
+  _ => <span class="kw">throw new</span> ArgumentException()
+};`},
+
+"object-pool":{idx:"18",title:"Object Pool",tag:"Tái sử dụng object thay vì tạo/hủy liên tục.",
+  problem:["<span class='inline'>Instantiate/Destroy</span> liên tục gây GC spike, giật khung hình."],
+  solution:["Tạo sẵn một pool object, bật/tắt thay vì hủy.","Lấy object rảnh từ pool, trả lại khi xong."],
+  flow:["Khởi tạo trước N object, set inactive.","Cần dùng → lấy object inactive, kích hoạt.","Dùng xong → reset &amp; trả về pool (inactive).","Pool hết → mở rộng hoặc tái dùng cái cũ nhất."],
+  use:["Đạn, particle, enemy số lượng lớn","Audio source","Bất kỳ thứ gì spawn/despawn nhiều"],
+  uml:"Pool [ ●○○●○ ]  (● dùng, ○ rảnh)\n Get()  ──▶ lấy ○ → ●\n Release(obj) ──▶ ● → ○ (reset)",
+  code:`<span class="ty">Bullet</span> Get() {
+  <span class="kw">var</span> b = pool.Find(x => !x.activeSelf) ?? Grow();
+  b.SetActive(<span class="kw">true</span>); <span class="kw">return</span> b;
+}
+<span class="kw">void</span> Release(<span class="ty">Bullet</span> b) { b.Reset(); b.SetActive(<span class="kw">false</span>); }`},
+
+"type-object":{idx:"12",title:"Type Object",tag:"Định nghĩa 'loại' bằng dữ liệu (instance) thay vì class mới.",
+  problem:["Tạo subclass cho từng loại quái (Goblin, Orc...) → cứng nhắc, cần lập trình viên thêm loại."],
+  solution:["Một class <span class='inline'>Monster</span> giữ tham chiếu tới object <span class='inline'>Breed</span> chứa thuộc tính loại.","Designer thêm loại bằng cách tạo data (ScriptableObject), không cần code."],
+  flow:["Định nghĩa các 'breed' dưới dạng data asset.","Monster instance giữ một breed.","Monster đọc thuộc tính (HP, attack) từ breed.","Thêm loại mới = tạo asset mới, không sửa code."],
+  use:["Hệ thống quái/item data-driven","ScriptableObject trong Unity","RPG stats, card games"],
+  uml:"Monster (instance)\n └ breed ──▶ Breed (data: hp, atk, sprite)\nNhiều Monster ──share──▶ cùng 1 Breed",
+  code:`<span class="kw">[CreateAssetMenu]</span>
+<span class="kw">class</span> <span class="ty">Breed</span> : <span class="ty">ScriptableObject</span> { <span class="kw">public int</span> hp, atk; }
+<span class="kw">class</span> <span class="ty">Monster</span> { <span class="kw">public</span> <span class="ty">Breed</span> breed; <span class="cm">// loại = data</span> }`},
+
+"flyweight":{idx:"2",title:"Flyweight",tag:"Chia sẻ dữ liệu chung giữa nhiều object để tiết kiệm RAM.",
+  problem:["Hàng ngàn object lặp lại cùng dữ liệu nặng (mesh, texture) → tốn bộ nhớ."],
+  solution:["Tách phần dùng chung (intrinsic) ra một object chia sẻ.","Mỗi instance chỉ giữ phần riêng (extrinsic: vị trí...) + tham chiếu phần chung."],
+  flow:["Xác định dữ liệu lặp lại nhiều (intrinsic).","Tạo một flyweight chứa dữ liệu đó.","Mọi instance trỏ chung vào flyweight.","Dữ liệu riêng được truyền/giữ ở instance."],
+  use:["Cây/cỏ trong rừng (cùng mesh)","Tile bản đồ","Unity: GPU Instancing, shared Material"],
+  uml:"Tree (×10000)\n ├ pos, scale       (riêng – extrinsic)\n └ model ──▶ TreeModel (mesh,texture)  ← chia sẻ",
+  code:`<span class="kw">class</span> <span class="ty">TreeModel</span> { Mesh mesh; Texture tex; } <span class="cm">// chia sẻ</span>
+<span class="kw">class</span> <span class="ty">Tree</span> { Vector3 pos; <span class="ty">TreeModel</span> model; } <span class="cm">// trỏ chung</span>`},
+
+"dirty-flag":{idx:"17",title:"Dirty Flag",tag:"Chỉ tính lại khi dữ liệu thật sự thay đổi.",
+  problem:["Tính toán nặng (transform, mesh) mỗi frame dù dữ liệu không đổi → lãng phí."],
+  solution:["Một cờ <span class='inline'>isDirty</span> đánh dấu 'cần tính lại'.","Set dirty khi đổi dữ liệu; chỉ recompute khi dirty = true, rồi clear cờ."],
+  flow:["Dữ liệu thay đổi → set <span class='inline'>dirty = true</span>.","Khi cần kết quả → nếu dirty thì tính lại &amp; cache, clear dirty.","Nếu không dirty → trả cache cũ.","Tiết kiệm tính toán lặp."],
+  use:["Transform hierarchy (world matrix)","Mesh sinh ra theo dữ liệu","Save khi có thay đổi","UI layout"],
+  uml:"set value → dirty = true\nget result →\n   dirty ? recompute + cache + clear : return cache",
+  code:`<span class="kw">set</span> { _local = <span class="kw">value</span>; _dirty = <span class="kw">true</span>; }
+<span class="ty">Matrix</span> World {
+  <span class="kw">get</span> { <span class="kw">if</span> (_dirty) { _world = Compute(); _dirty = <span class="kw">false</span>; }
+        <span class="kw">return</span> _world; }
+}`},
+
+"double-buffer":{idx:"7",title:"Double Buffer",tag:"Ghi vào buffer ẩn, hiện cùng lúc để tránh trạng thái dở dang.",
+  problem:["Đọc và ghi cùng một state trong khi cập nhật → thấy trạng thái nửa vời (tearing)."],
+  solution:["Dùng hai buffer: current (đọc) &amp; next (ghi).","Cập nhật xong → swap hai buffer."],
+  flow:["Đọc từ buffer current.","Tính frame mới, ghi vào buffer next.","Hoàn tất → swap current ↔ next.","Frame sau lặp lại, không bao giờ đọc state đang ghi."],
+  use:["Game of Life / cellular automata","Mô phỏng vật lý theo lượt","Rendering (front/back buffer)"],
+  uml:"[current] ──đọc──▶ logic ──ghi──▶ [next]\n        sau frame:  swap()\n[next] ↔ [current]",
+  code:`<span class="kw">void</span> Step() {
+  <span class="kw">for</span> (...) next[i] = Compute(current);
+  (current, next) = (next, current); <span class="cm">// swap</span>
+}`},
+
+"spatial-partition":{idx:"19",title:"Spatial Partition",tag:"Chia không gian thành ô để truy vấn lân cận nhanh.",
+  problem:["Tìm object gần nhau bằng cách so sánh tất cả cặp = O(n²) → quá chậm."],
+  solution:["Lưu object theo vị trí trong cấu trúc không gian (grid, quadtree).","Chỉ kiểm tra object trong ô/lân cận → giảm mạnh số phép so."],
+  flow:["Chia thế giới thành các ô (cell).","Đặt mỗi object vào ô theo tọa độ.","Truy vấn lân cận → chỉ duyệt ô đó &amp; ô kề.","Object di chuyển → cập nhật ô của nó."],
+  use:["Collision/proximity số lượng lớn","AI tìm mục tiêu gần","Culling, pathfinding"],
+  uml:"Grid:\n ┌──┬──┬──┐  query(x,y) → chỉ duyệt\n │  │●●│  │  ô chứa + 8 ô kề\n ├──┼──┼──┤  thay vì toàn map\n │● │ ●│ ●│",
+  code:`<span class="ty">Cell</span> CellOf(<span class="ty">Vector2</span> p) => grid[(<span class="kw">int</span>)(p.x/size), (<span class="kw">int</span>)(p.y/size)];
+<span class="cm">// chỉ kiểm tra object cùng cell &amp; cell lân cận</span>`},
+
+"bytecode":{idx:"10",title:"Bytecode",tag:"Biểu diễn hành vi bằng tập lệnh ảo (data) thay vì code.",
+  problem:["Hard-code hành vi (spell, skill) trong engine → mỗi thay đổi phải build lại."],
+  solution:["Định nghĩa tập 'opcode' (instruction).","Hành vi = mảng bytecode; một VM đọc &amp; thực thi từng lệnh."],
+  flow:["Định nghĩa các instruction (SET_HP, PLAY_SOUND...).","Compile/ghi hành vi thành chuỗi bytecode.","VM lặp qua từng lệnh, thực thi trên stack.","Sửa hành vi = sửa data, không sửa engine."],
+  use:["Hệ thống spell/skill modding","Scripting nội bộ nhẹ","Behavior do data điều khiển"],
+  uml:"bytecode: [ SET_HP, 3, 50, PLAY_SND, 2 ]\nVM loop:\n  while(pc<len) switch(code[pc++]) { ... push/pop stack }",
+  code:`<span class="kw">switch</span> (instr) {
+  <span class="kw">case</span> SET_HP: hp[Read()] = Read(); <span class="kw">break</span>;
+  <span class="kw">case</span> ADD: push(pop() + pop()); <span class="kw">break</span>;
+}`},
+
+"event-queue":{idx:"14",title:"Event Queue (Command Queue)",tag:"Tách thời điểm gửi và xử lý sự kiện bằng hàng đợi.",
+  problem:["Xử lý sự kiện ngay lập tức → coupling thời gian, có thể đệ quy/đồng bộ không mong muốn."],
+  solution:["Đẩy sự kiện vào queue khi phát sinh.","Xử lý queue sau (theo nhịp), tách sender khỏi receiver về cả không gian lẫn thời gian."],
+  flow:["Producer enqueue sự kiện.","Queue lưu trữ chờ xử lý.","Mỗi frame/tick, consumer dequeue &amp; xử lý.","Sender không chờ, không biết ai xử lý."],
+  use:["Hệ thống âm thanh (gộp request)","Message giữa hệ thống","Input buffering, networking"],
+  uml:"Producer ──enqueue──▶ [ e1 e2 e3 ] ──dequeue──▶ Consumer\n            (FIFO, xử lý trễ theo tick)",
+  code:`queue.Enqueue(<span class="kw">new</span> SoundEvent(clip)); <span class="cm">// gửi</span>
+<span class="kw">void</span> Update() {                     <span class="cm">// xử lý sau</span>
+  <span class="kw">while</span> (queue.Count > 0) Process(queue.Dequeue());
+}`},
+
+"service-locator":{idx:"15",title:"Service Locator",tag:"Cung cấp điểm truy cập toàn cục tới một dịch vụ, ẩn implementation.",
+  problem:["Truyền tham chiếu service (Audio, Log) qua khắp nơi rườm rà; nhưng singleton thì cứng."],
+  solution:["Một locator giữ &amp; trả về service qua interface.","Có thể đổi implementation (real / null / mock) lúc runtime."],
+  flow:["Đăng ký service: <span class='inline'>Locator.Provide(impl)</span>.","Client xin service: <span class='inline'>Locator.Get&lt;T&gt;()</span>.","Locator trả về instance đã đăng ký.","Đổi implementation → chỉ đổi ở chỗ Provide."],
+  use:["Audio/Logging service","Đổi sang null-service khi test","Thay thế mềm dẻo hơn singleton"],
+  uml:"Locator\n ├ Provide(IAudio)\n └ Get<IAudio>() ──▶ (real | null | mock)\nClient ──Get──▶ dùng qua interface",
+  code:`<span class="kw">static class</span> <span class="ty">Locator</span> {
+  <span class="kw">static</span> <span class="ty">IAudio</span> audio = <span class="kw">new</span> NullAudio(); <span class="cm">// default an toàn</span>
+  <span class="kw">public static void</span> Provide(<span class="ty">IAudio</span> a) => audio = a;
+  <span class="kw">public static</span> <span class="ty">IAudio</span> Audio => audio;
+}`},
+
+"subclass-sandbox":{idx:"11",title:"Subclass Sandbox",tag:"Lớp con định nghĩa hành vi bằng các thao tác do lớp cha cấp.",
+  problem:["Nhiều subclass cần truy cập hệ thống cấp thấp (sound, physics) → mỗi class tự coupling, lặp."],
+  solution:["Base class cung cấp các method <span class='inline'>protected</span> (sandbox ops).","Subclass viết hành vi bằng cách kết hợp các op đó, không đụng hệ thống thấp."],
+  flow:["Base định nghĩa các operation an toàn (protected).","Subclass override một method abstract (vd <span class='inline'>Activate()</span>).","Trong đó chỉ gọi các sandbox op của base.","Đổi hệ thống thấp → chỉ sửa base."],
+  use:["Superpower / skill system","Hành vi của nhiều entity dùng chung API","Giảm coupling subclass ↔ engine"],
+  uml:"Superpower (base)\n ├ <abstract> Activate()\n └ protected: Move(), PlaySound(), Spawn()\n      ▲\n  SkyLaunch.Activate() { Move(); PlaySound(); }",
+  code:`<span class="kw">abstract class</span> <span class="ty">Superpower</span> {
+  <span class="kw">protected void</span> PlaySound(int id) { ... }
+  <span class="kw">protected void</span> Move(Vector3 v) { ... }
+  <span class="kw">protected abstract void</span> Activate(); <span class="cm">// con điền</span>
+}`},
+
+"update":{idx:"9",title:"Update Method",tag:"Mỗi object tự cập nhật trạng thái một bước mỗi frame.",
+  problem:["Một vòng lặp khổng lồ xử lý mọi entity → khó mở rộng, khó tách."],
+  solution:["Mỗi object có method <span class='inline'>Update()</span> mô phỏng một frame của riêng nó.","Game loop duyệt collection và gọi Update từng cái."],
+  flow:["Game loop chạy mỗi frame.","Duyệt qua tất cả object trong list.","Gọi <span class='inline'>obj.Update(deltaTime)</span>.","Mỗi object tự tiến một bước; lặp frame sau."],
+  use:["Hành vi từng entity (Unity MonoBehaviour.Update)","Custom update manager (gộp lời gọi)","AI tick"],
+  uml:"GameLoop (mỗi frame):\n  foreach(obj in objects) obj.Update(dt)\nUnity: Engine ──▶ MonoBehaviour.Update()",
+  code:`<span class="cm">// custom update manager: gọi tập trung thay vì N MonoBehaviour</span>
+<span class="kw">void</span> Update() {
+  <span class="kw">float</span> dt = Time.deltaTime;
+  <span class="kw">foreach</span> (<span class="kw">var</span> e in entities) e.OnUpdate(dt);
+}`},
+
+"facade":{idx:"22",title:"Facade",tag:"Một giao diện đơn giản che giấu hệ thống con phức tạp.",
+  problem:["Client phải gọi nhiều lớp con phối hợp với nhau → rối, dễ sai thứ tự."],
+  solution:["Tạo một lớp facade cung cấp method cấp cao đơn giản.","Facade điều phối các subsystem bên trong."],
+  flow:["Client gọi một method của facade.","Facade gọi lần lượt các subsystem đúng thứ tự.","Subsystem làm việc, facade tổng hợp.","Client không cần biết chi tiết bên trong."],
+  use:["API khởi động game (load+audio+UI)","Bọc thư viện phức tạp","Cổng giao tiếp giữa các module"],
+  uml:"Client ──▶ Facade.StartGame()\n              ├▶ SaveSystem.Load()\n              ├▶ Audio.Init()\n              └▶ UI.Show()",
+  code:`<span class="kw">class</span> <span class="ty">GameFacade</span> {
+  <span class="kw">public void</span> StartGame() {     <span class="cm">// 1 lời gọi đơn giản</span>
+    save.Load(); audio.Init(); ui.ShowHUD(); level.Build();
+  }
+}`},
+};
+
+// render
+const content = document.getElementById('content');
+const nav = document.getElementById('nav');
+CATS.forEach(cat=>{
+  const ct = document.createElement('div');
+  ct.className='cat-title'; ct.textContent=cat.name;
+  content.appendChild(ct);
+  const navH = document.createElement('h2'); navH.textContent=cat.name; nav.appendChild(navH);
+  cat.items.forEach(key=>{
+    const p = P[key]; if(!p) return;
+    const a=document.createElement('a'); a.href='#'+key;
+    a.innerHTML=`<span class="num">${p.idx}</span>${p.title}`; nav.appendChild(a);
+    const li = (arr)=>arr.map(x=>`<li>${x}</li>`).join('');
+    const card=document.createElement('section');
+    card.className='card'; card.id=key;
+    card.innerHTML=`
+      <h3><span class="idx">#${p.idx}</span>${p.title}</h3>
+      <p class="tagline">${p.tag}</p>
+      <div class="grid">
+        <div class="box prob"><h4>Vấn đề</h4><ul>${li(p.problem)}</ul></div>
+        <div class="box sol"><h4>Cách giải</h4><ul>${li(p.solution)}</ul></div>
+        <div class="box flow"><h4>Luồng hoạt động</h4><ol class="flow-steps">${li(p.flow)}</ol></div>
+        <div class="box use"><h4>Khi nào dùng</h4><ul>${li(p.use)}</ul></div>
+      </div>
+      <div class="uml">${p.uml}</div>
+      <pre>${p.code}</pre>`;
+    content.appendChild(card);
+  });
+});
+</script>
+</body>
+</html>
